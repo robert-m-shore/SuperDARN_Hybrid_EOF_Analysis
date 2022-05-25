@@ -1,0 +1,243 @@
+#!/bin/bash
+
+# Script to convert .rawacf files to .fitacf format for a given time range.
+# Based on \\samba.nerc-bas.ac.uk\gchi\superdarn\coverage\data\cover_fitacf_script
+# by Gareth Chisham, itself based on an original script by Nick Edwards 01/10/02
+
+# Prints usage info to stdout then exits.
+function usage
+{
+   echo Usage: fitacf_script [-sd STARTDATE] [-ed ENDDATE] [-s STATION] [-in DATA_DIR] [-out WRITE_DIR] [--help]
+   echo where,
+   echo '-sd' and '-ed' precede start and end dates in the format "DD/MM/YYYY" respectively,
+   echo '-s' is followed by a station identifier \(one or three letters\),
+   echo '-in' is followed by the top-level directory that the data are stored in,
+   echo '-out' is followed by the top-level directory that the output data are written to,
+   exit
+}
+
+# User adjustable defaults
+DATA_DIR_DEF='/local/users/robore/shortcut_SD_data'
+WRITE_DIR_DEF='/local/users/robore/Data/SuperDARN_Data/Velocities'
+S_DATE_DEF='01/12/2001'
+E_DATE_DEF='31/12/2001'
+STATION_DEF='t'
+LOGFILE=$(pwd)/"cover_$( date +%s ).log"
+
+# Process command line arguments
+ARGS=( "${@}" )
+for (( I=0 ; I<${#} ; I++ )) ;
+do {
+   case "${ARGS[$I]}" in
+      -sd)   # Set start date
+         if (( I+1 <= ${#} )) ;
+         then { S_DATE_STR=${ARGS[$I+1]} ; } ;
+         else usage ;
+         fi
+         I=$I+1
+         ;;
+      -ed)   # Set end date
+         if (( I+1 <= ${#} )) ;
+         then { E_DATE_STR=${ARGS[$I+1]} ; } ;
+         else usage ;
+         fi
+         I=$I+1
+         ;;
+      -s)    # Set station letter
+         if (( I+1 <= ${#} )) ;
+         then { STATION=${ARGS[$I+1]} ; } ;
+         else usage ;
+         fi
+         I=$I+1
+         ;;
+      -in)    # Set input data directory
+         if (( I+1 <= ${#} )) ;
+         then { DATA_DIR=${ARGS[$I+1]} ; } ;
+         else usage ;
+         fi
+         I=$I+1
+         ;;
+      -out)    # Set output data directory
+         if (( I+1 <= ${#} )) ;
+         then { WRITE_DIR=${ARGS[$I+1]} ; } ;
+         else usage ;
+         fi
+         I=$I+1
+         ;;
+      --help) # Give help info
+         usage
+         ;;
+      *)
+         echo Error: ${ARGS[$I]} - invalid flag
+         usage
+   esac
+} ; done
+
+# Set defaults for options not set on command line and warn user of their values
+DATA_DIR=${DATA_DIR:-$DATA_DIR_DEF}
+WRITE_DIR=${WRITE_DIR:-$WRITE_DIR_DEF}
+STATION=${STATION:-$STATION_DEF}
+S_DATE_STR=${S_DATE_STR:-$S_DATE_DEF}
+E_DATE_STR=${E_DATE_STR:-$E_DATE_DEF}
+
+# Check for sensible values of command line arguments
+ARGS_OK=1
+
+# Check the station (just check it's a single character for the moment)
+if (( (${#STATION} != 1) && (${#STATION} != 3) )) ;
+then {
+   echo Error: ${STATION} - invalid station indentifier \(one or three characters only\)
+   ARGS_OK=0
+} ; fi
+
+# Check length of date strings (assume that the format is followed)
+if (( ${#S_DATE_STR} != 10 )) ;
+then {
+   echo Error: ${S_DATE_STR} - invalid date format \(use \"DD/MM/YYYY\"\)
+   ARGS_OK=0
+} ; fi
+if (( ${#E_DATE_STR} != 10 )) ;
+then {
+   echo Error: ${E_DATE_STR} - invalid date format \(use \"DD/MM/YYYY\"\)
+   ARGS_OK=0
+} ; fi
+
+# Get the different bits of the date from the string
+TEMP=$S_DATE_STR
+S_YEAR=${TEMP##*/}     # YYYY      (remove longest leading "*/" from DIR)
+TEMP=${TEMP%/*}        # DD/MM/YYYY -> DD/MM (remove shortest trailing "/*" from DIR)
+S_MONTH=${TEMP##*/}    # MM    (remove longest leading "*/" from DIR)
+TEMP=${TEMP%/*}        # DD/MM DD  (remove shortest trailing "/*" from DIR)
+S_DAY=${TEMP}          # DD
+
+TEMP=$E_DATE_STR
+E_YEAR=${TEMP##*/}     # YYYY      (remove longest leading "*/" from DIR)
+TEMP=${TEMP%/*}   # DD/MM/YYYY -> DD/MM (remove shortest trailing "/*" from DIR)
+E_MONTH=${TEMP##*/}     # MM    (remove longest leading "*/" from DIR)
+TEMP=${TEMP%/*}   # DD/MM DD  (remove shortest trailing "/*" from DIR)
+E_DAY=${TEMP}           # DD
+
+# Remove any leading 0 characters
+if [[ ${S_MONTH:0:1} == 0 ]] ; then S_MONTH_VAL=${S_MONTH:1:1} ; else S_MONTH_VAL=${S_MONTH} ; fi
+if [[ ${E_MONTH:0:1} == 0 ]] ; then E_MONTH_VAL=${E_MONTH:1:1} ; else E_MONTH_VAL=${E_MONTH} ; fi
+if [[ ${S_DAY:0:1} == 0 ]] ; then S_DAY_VAL=${S_DAY:1:1} ; else S_DAY_VAL=${S_DAY} ; fi
+if [[ ${E_DAY:0:1} == 0 ]] ; then E_DAY_VAL=${E_DAY:1:1} ; else E_DAY_VAL=${E_DAY} ; fi
+
+# Check end date is after start date
+DATE_ERR=0
+if (( S_YEAR > E_YEAR )) ;
+then {
+   DATE_ERR=1
+} ;
+else {
+   if (( (S_YEAR==E_YEAR) && (S_MONTH_VAL>E_MONTH_VAL) )) ;
+   then {
+      DATE_ERR=1
+   } ;
+   else {
+      if (( (S_YEAR==E_YEAR) && (S_MONTH_VAL==E_MONTH_VAL) && (S_DAY_VAL>E_DAY_VAL) )) ;
+      then {
+         DATE_ERR=1
+      } ;
+      fi
+   } ; fi
+} ;
+fi
+if (( DATE_ERR==1 )) ;
+then {
+   echo Error: Start date after end date \($S_DATE_STR \> $E_DATE_STR\)
+   ARGS_OK=0
+} ; fi
+
+# Exit if any problems have occurred in getting the info from args
+if (( ARGS_OK != 1 )) ; then usage ; fi
+
+# OK, now process files
+START_TIME_1=$( date +%s )
+echo Processing all files satisfying \(at $(date)\),
+echo -e \\040 Station:$STATION Start date:$S_DATE_STR End date:$E_DATE_STR
+echo Processing all files satisfying \(at $(date)\), > $LOGFILE
+echo -e \\040 Station:$STATION Start date:$S_DATE_STR End date:$E_DATE_STR >> $LOGFILE
+
+# Loop over years
+for (( YEAR=S_YEAR ; YEAR<=E_YEAR ; YEAR++ )) ;
+do {
+   # If this is the last year, then the last month comes from
+   # the end month value, otherwise do the whole year
+   if (( YEAR==E_YEAR )) ;
+   then LAST_MONTH=$E_MONTH_VAL;
+   else LAST_MONTH=12;
+   fi
+
+   # If this is the first year then the first month comes
+   # from the start month value, otherwise start at 1
+   if (( YEAR==S_YEAR )) ;
+   then FIRST_MONTH=$S_MONTH_VAL;
+   else FIRST_MONTH=1;
+   fi
+
+   # Loop over months
+   for (( MONTH=FIRST_MONTH ; MONTH<=LAST_MONTH ; MONTH++ )) ;
+   do {
+      # Pad date with leading 0 if necessary
+      if (( MONTH < 10 )) ; then MONTH_STR='0'$MONTH ; else MONTH_STR=$MONTH ; fi
+
+      # If this is the last month, then the last day comes from
+      # the end day value, otherwise do the whole month
+      if (( MONTH==E_MONTH_VAL && YEAR==E_YEAR )) ;
+      then LAST_DAY=$E_DAY_VAL;
+      else LAST_DAY=31;
+      fi
+
+      # If this is the first month then the first day comes
+      # from the start day value, otherwise start at 1
+      if (( MONTH==S_MONTH_VAL && YEAR==S_YEAR )) ;
+      then FIRST_DAY=$S_DAY_VAL;
+      else FIRST_DAY=1;
+      fi
+
+      # Loop over days
+      for (( DAY=FIRST_DAY ; DAY<=LAST_DAY ; DAY++ )) ;
+      do {
+         # Pad day with leading 0 if necessary
+         if (( DAY < 10 )) ; then DAY_STR='0'$DAY ; else DAY_STR=$DAY ; fi
+
+         # Get filename bits for the files we want
+         BASE_DIR=${DATA_DIR}/${STATION}/${YEAR}/${MONTH_STR}
+
+         # Loop over hours i.e. files in this day
+         for RAWACFFILE in $( ls ${BASE_DIR}/${YEAR}${MONTH_STR}${DAY_STR}.*.{RAWACF,rawacf} 2>/dev/null ) ;
+         do {
+            # Get start time for logging purposes
+            START_TIME_2=$( date +%s )
+
+            echo -n Processing $RAWACFFILE ...
+            echo ----------------------------------- >> $LOGFILE
+            echo Processing: $RAWACFFILE >> $LOGFILE
+            
+            # Get the filename stem of this .rawacf file, then add .fitacf
+            FITACFFILE=${RAWACFFILE##*/}  # Remove longest leading */ from RAWACFFILE path
+            FITACFFILE=${FITACFFILE:0:(${#FITACFFILE}-7)}.fitacf   # Change .rawacf suffix to .fitacf
+			FITACFFILE=${WRITE_DIR}/$STATION/${FITACFFILE}  #Prepend a custom file output directory.
+			
+            # Call coverage_fitacf on that file with appropriate arguments
+
+            # Make sure the station has its own top level directory
+			STATION_DIR=${WRITE_DIR}/$STATION
+            if [[ ! -d ${STATION_DIR} ]] ; then mkdir ${STATION_DIR} ; fi
+
+            # Make a fitacf file from this rawacf file
+            /local/users/robore/Code/JH/MakeFit/rst-4.0/bin/make_fit -new $RAWACFFILE > $FITACFFILE
+
+            # cd ..
+
+            echo  finished \(in $(( $( date +%s ) - $START_TIME_2 )) seconds\) \(at $(date)\)
+            echo  finished \(in $(( $( date +%s ) - $START_TIME_2 )) seconds\) \(at $(date)\) >> $LOGFILE
+        } ; done    # File loop
+      } ; done    # Day loop
+   } ; done    # Month loop
+} ; done    # Year loop
+
+echo Finished all processing in $(( $(date +%s) - $START_TIME_1 )) seconds.
+echo ----------------------------------- >> $LOGFILE
+echo Finished all processing in $(( $(date +%s) - $START_TIME_1 )) seconds. >> $LOGFILE

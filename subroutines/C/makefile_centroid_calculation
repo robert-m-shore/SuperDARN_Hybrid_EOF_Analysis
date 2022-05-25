@@ -1,0 +1,36 @@
+# Makefile for centroid_calculation
+# ========================
+# by Rob Shore, based on code by Gareth Chisham.
+#
+#
+
+INCLUDE=-I$(IPATH)/base -I$(IPATH)/general -I$(IPATH)/superdarn
+OBJS = centroid_calculation.o
+SRC = centroid_calculation.c
+OUTPUT = ./centroid_calculation
+LIBS = -lradar.1 -lrtime.1 -lrcnv.1 -lradar.1
+SLIB = -lm
+
+CFLAGS =-fPIC -Wall -O3 -ansi -D_GNU_SOURCE -D_LINUX $(INCLUDE)
+LFLAGS = -L$(LIBPATH) #-L$(USR_LIBPATH)
+
+DFL=-Wl,-Bdynamic
+ARC=-Wl,-Bstatic
+SHR=-Wl,-Bdynamic
+
+# By default statically link the all programs
+
+LNK=$(ARC)
+
+.c.o:
+	$(CC) $(CFLAGS) -c $<    
+
+$(OUTPUT): $(OBJS)
+	$(CC) $(LFLAGS) -o $(OUTPUT) $(OBJS) $(LNK) $(LIBS) $(XLIB) $(DFL) \
+                           $(SLIB) $(XLIBS)  
+ 
+
+
+
+
+

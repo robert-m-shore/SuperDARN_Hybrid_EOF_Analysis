@@ -1,0 +1,38 @@
+# Makefile for fit_file_parse
+# ========================
+# by Rob Shore, based on code by Gareth Chisham.
+#
+#
+
+INCLUDE=-I$(IPATH)/base -I$(IPATH)/general -I$(IPATH)/superdarn
+LIBPATH=/local/users/robore/Code/JH/MakeFit/rst-4.0/lib
+OBJS = fit_file_parse.o
+SRC = fit_file_parse.c
+OUTPUT = ./fit_file_parse
+LIBS = -loldfit.1 -lfit.1 -lrscan.1 -lradar.1 -ldmap.1 -lopt.1 -lrtime.1 -lrcnv.1
+SLIB = -lm -lz
+
+CFLAGS =-fPIC -Wall -O3 -ansi -D_GNU_SOURCE -D_LINUX $(INCLUDE)
+# LFLAGS = -L$(LIBPATH) -L$(USR_LIBPATH)
+LFLAGS = -L$(LIBPATH)
+
+DFL=-Wl,-Bdynamic
+ARC=-Wl,-Bstatic
+SHR=-Wl,-Bdynamic
+
+# By default statically link the all programs
+
+LNK=$(ARC)
+
+.c.o:
+	$(CC) $(CFLAGS) -c $<    
+
+$(OUTPUT): $(OBJS)
+	$(CC) $(LFLAGS) -o $(OUTPUT) $(OBJS) $(LNK) $(LIBS) $(XLIB) $(DFL) \
+                           $(SLIB) $(XLIBS)  
+ 
+
+
+
+
+
