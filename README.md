@@ -15,6 +15,9 @@ Program objectives:
     7.	The two EOF models are compared in terms of how well each recovers the original data variability, and the best-performing model for each spatial location is selected.  The resulting hybrid dataset comprises a continuous record of SuperDARN horizontal plasma velocity vectors at each spatial location and at 5-minute temporal cadence, with no missing information, and without relying on external drivers (like the solar wind) to complete the data coverage.
 
 
+Note: in the description below, the wildcards 'code_directory', 'data_directory', and 'output_directory' are directory paths on the British Antarctic Survey Linux machine 'bslthemesa', and these variables are already assigned their appropriate directory paths within program SuperDARN_Hybrid_EOF_Analysis.m.  The user may redefine them within that program if required.
+
+
 Description of input data requirements: 
     
     SuperDARN measurement files:
@@ -35,16 +38,16 @@ Description of input data requirements:
         '20101218.fir.a.rawacf'.
         These files are large, and are not stored locally.  They are accessed (when on the BAS network) via symlink to //samba.nerc-bas.ac.uk/data/superdarn. The user will have to set this up prior to running this program.
 		
-	Files stored locally in [code directory]/metadata: 
+	Files stored locally in [code_directory]/metadata: 
         metadata/bin_coordinates/north_polar_region_equal_area_bins.mat: 
-            These are the coordinates of the equal area spatial bins used in this analysis. Their format is described within program SuperDARN_Hybrid_EOF_Analysis.m, along with the (commented out) code used to produce these coordinates, which calls the programs in [code directory]/subroutines/equal_area_sphere_partitions.
+            These are the coordinates of the equal area spatial bins used in this analysis. Their format is described within program SuperDARN_Hybrid_EOF_Analysis.m, along with the (commented out) code used to produce these coordinates, which calls the programs in [code_directory]/subroutines/equal_area_sphere_partitions.
         metadata/centroid_locations/centroid_locations_ade_1.dat, and other files in that directory: 
-            These are the estimated geographic locations of the SuperDARN measurements, along with some records of the parameters of the radar beam configuration.  The exact format of the values in these files is described in program SuperDARN_Hybrid_EOF_Analysis.m, where the variable centroid_data_bulk is first defined.  These files are created by program [code directory]/subroutines/C/centroid_calculation.c (described below).  There is one file per configuration setup for each radar.  The configuration setups are date-ordered, and are defined by the entries in the files in metadata/hardware_files.
+            These are the estimated geographic locations of the SuperDARN measurements, along with some records of the parameters of the radar beam configuration.  The exact format of the values in these files is described in program SuperDARN_Hybrid_EOF_Analysis.m, where the variable centroid_data_bulk is first defined.  These files are created by program [code_directory]/subroutines/C/centroid_calculation.c (described below).  There is one file per configuration setup for each radar.  The configuration setups are date-ordered, and are defined by the entries in the files in metadata/hardware_files.
         metadata/hardware_files/hdw.dat.ade, and similar files: 
             These files were downloaded from http://davit1.ece.vt.edu/hdw/[filename for each radar] on 2021/03/19, with subsequent edits to the whitespace for the files for radars cve, cvw, cly, hkw.  These files describe the hardware parameters that are used by the radar control software and the analysis software.  Each file has a header which more completely describes the file contents.
 
 
-Description of subroutines, stored in [code directory]/subroutines: 
+Description of subroutines, stored in [code_directory]/subroutines: 
     
     subroutines/BASH/fit_script_v6: 
         This is a BASH script which calls the make_fit routine in the RST software package.  It is designed to convert .dat files to .fit format for a given time range.  Source: supplied by Gareth Chisham (gchi@bas.ac.uk).
@@ -71,7 +74,7 @@ Description of subroutines, stored in [code directory]/subroutines:
 Description of outputs: 
     
     Fitted line-of-sight velocity files in C binary format, saved to [data_directory]/Velocities/[radar name]/: 
-        These are files of line-of-sight velocities for a given radar.  They are obtained by running the BASH scripts fit_script_v6 and fitacf_script_v6 (in [code directory]/subroutines/BASH) on files of autocorrelation functions (which have either .dat or .rawacf as suffix).  The fitted velocity files have either .fit or .fitacf as suffix.  The filenames have the following formats: 
+        These are files of line-of-sight velocities for a given radar.  They are obtained by running the BASH scripts fit_script_v6 and fitacf_script_v6 (in [code_directory]/subroutines/BASH) on files of autocorrelation functions (which have either .dat or .rawacf as suffix).  The fitted velocity files have either .fit or .fitacf as suffix.  The filenames have the following formats: 
         $(YEAR)$(MONTH)$(DAY).$(HOUR)$(MINUTE).$(SECOND).$(STATION).${FILETYPE}, or 
         $(YEAR)$(MONTH)$(DAY).$(HOUR)$(MINUTE).$(SECOND).$(STATION).$(CHANNEL).${FILETYPE}, e.g.: 
         '20020918.1243.43.gbr.fit' or
@@ -88,11 +91,11 @@ Description of outputs:
         '20101218.fir.a.fitacf'.
         These files are deleted by program SuperDARN_Hybrid_EOF_Analysis.m after their conversion from C binary format to ascii format.
 		
-    Log files from the BASH scripts, saved to [code directory]/subroutines/BASH/: 
+    Log files from the BASH scripts, saved to [code_directory]/subroutines/BASH/: 
         These contain the runtime reports from the BASH scripts fit_script_v6 and fitacf_script_v6.  The filename format is cover_*.log.  These log files are deleted by program SuperDARN_Hybrid_EOF_Analysis.m after processing data from all radars in a given calendar month.
     
     Fitted line-of-sight velocity files in ascii format, saved to [data_directory]/Velocities/[radar name]/: 
-        The C binary format files of line-of-sight velocity (described above) which are output by the BASH scripts fit_script_v6 and fitacf_script_v6 are converted to these ascii-formatted files by programs fit_file_parse.c and fitacf_file_parse.c (each of which is in [code directory]/subroutines/C).  The ascii files can either be of daily or subdaily cadence.  Subdaily files have the following format: 
+        The C binary format files of line-of-sight velocity (described above) which are output by the BASH scripts fit_script_v6 and fitacf_script_v6 are converted to these ascii-formatted files by programs fit_file_parse.c and fitacf_file_parse.c (each of which is in [code_directory]/subroutines/C).  The ascii files can either be of daily or subdaily cadence.  Subdaily files have the following format: 
         [radar name]_[year][month][day]_[hour][minute]_[second]_velocities_GEO_[version identifier].dat, e.g.: gbr_20170928_1848_04_velocities_GEO_v7.dat, where GEO indicates that these line-of-sight velocities are still in geographic coordinates, and [version identifier] is a string indicating the program settings used to process the SuperDARN velocities: it is v7 by default, and can be manually set in program SuperDARN_Hybrid_EOF_Analysis.m.
         Daily files have the following format: 
         [radar name]_[year][month][day]_velocities_GEO_[version identifier].dat, e.g.: gbr_20010201_velocities_GEO_v7.dat.
@@ -121,7 +124,7 @@ Description of outputs:
 Instructions for running the hybrid EOF analysis: 
     Program SuperDARN_Hybrid_EOF_Analysis.m was developed on the British Antarctic Survey machine bslthemesa (full path: bslthemesa.nerc-bas.ac.uk) using MATLAB R2012a.  It is set up to run using the same environment, i.e. it is not trivially portable to another machine.  If running on another machine, the following steps should be taken.  The SuperDARN Radar Software Toolkit (RST) will need to be installed: RST 4.0 (the version used in this analysis) is available at https://doi.org/10.5281/zenodo.801459, along with installation instructions.  The path to the RST libraries must be included in the machine’s environment variables, using the command: 
     source [path to where RST is installed locally]/rst-4.0/.profile/superdarn.tcsh
-    The subroutine and metadata subdirectories (described above) for program SuperDARN_Hybrid_EOF_Analysis.m need to be added to the MATLAB path.  The user must make a local mount directory so that the machine can access the SuperDARN Area Network, where the autocorrelation files are stored.  Once a local directory is made, the mount command is: 
+    The subroutine and metadata subdirectories (described above) for program SuperDARN_Hybrid_EOF_Analysis.m need to be added to the MATLAB path.  The user must make a local mount directory so that the machine can access the SuperDARN Area Network (at //samba.nerc-bas.ac.uk/data/superdarn), where the autocorrelation files are stored.  Once a local directory is made, the mount command is: 
     sudo mount -t cifs //samba.nerc-bas.ac.uk/data/superdarn [location of local directory, with terminating slash] -o username=[username],password=[password],rw,file_mode=0777,dir_mode=0777,vers=2.0
     Following these steps, the user should alter the variables in cell “%% Options: state which calendar months to run for, and where the data are stored:” of program SuperDARN_Hybrid_EOF_Analysis.m to specify the calendar months which will be processed, and the directory locations in which the data are stored (both locally and on the SuperDARN Area Network), and where the outputs will be saved to.
 
