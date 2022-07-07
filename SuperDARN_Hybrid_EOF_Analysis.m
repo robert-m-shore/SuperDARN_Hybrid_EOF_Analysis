@@ -25,10 +25,10 @@ start_month = 01;
 end_month = 12;
 
 %Define directory names:
-SuperDARN_area_network_directory = '/local/users/robore/shortcut_SD_data';%this is a symlink to //samba.nerc-bas.ac.uk/data/superdarn. Needs no terminating slash! This is where the SuperDARN data are stored at BAS.
-data_directory = '/local/users/robore/Data/SuperDARN_Data/';%this used to store interstitial outputs (e.g. fitted velocity C binary or ascii files, and binned data files).
-output_directory = '/local/users/robore/Data/SuperDARN_Results/';%this used to store the EOF analysis outputs, and the hybrid EOF model reanalysis dataset.
-code_directory = '/local/users/robore/Code/JH/SHEAR/';%SHEAR: 'SuperDARN Hybrid EOF Analysis Repo'. This is where the code is stored locally: used to define paths to metadata and subroutines directories.
+SuperDARN_area_network_directory = '/data/superdarn';%this is the directory //samba.nerc-bas.ac.uk/data/superdarn, where the SuperDARN data are stored at BAS. This path string needs no terminating slash!
+data_directory = '/data/psdcomplexity/eimf/SuperDARN_Data/';%this used to store interstitial outputs (e.g. fitted velocity C binary or ascii files, and binned data files).
+output_directory = '/data/psdcomplexity/eimf/SuperDARN_Results/';%this used to store the EOF analysis outputs, and the hybrid EOF model reanalysis dataset.
+code_directory = '/users/robore/Research/Code/JH/SuperDARN_Hybrid_EOF_Analysis_repo/';%This is where the code is stored locally: used to define paths to metadata and subroutines directories.
 
 %% More options: Top-level data binning and EOF analysis processing parameters:
 %Note to user: I would not alter these unless you know what you are doing.
@@ -1737,7 +1737,7 @@ for i_year = start_year:1:end_year
                     
                     %If there's no data in this epoch, skip it:
                     if(isempty(index_SingleDir_sUTw))
-                        disp(['No data in bin width ' num2str(i_temporal_bin)])
+                        %disp(['No data in bin width ' num2str(i_temporal_bin)])
                         continue%pertains to loop over i_temporal_bin.
                     end%Conditional: data check.
                     
@@ -2929,7 +2929,7 @@ for i_year = start_year:1:end_year
                     
                     %Check binned data for NaNs:
                     if(sum(isnan(binned_data_single_LOS_SingleLocation)) > 0)
-                        disp('Error: NaNs in binned dtaa: terminating.')
+                        disp('Error: NaNs in binned data: terminating.')
                         return
                     end%Conditional: data check.
                     
@@ -2988,6 +2988,9 @@ for i_year = start_year:1:end_year
                 hybrid_model_choice_values(i_bin,:) = NaN;
             end%Conditional: allowing for NaNs properly, since the later plotting code depends on it.
         end%Loop over each spatial bin.
+        
+        %Save out the hybrid model choice values:
+        save([output_directory  num2str(i_year) '-' num2str(i_month,'%2.2d') '_HybridModelChoiceIndices.mat'],'hybrid_model_choice_values')
         
         %% Use the best-performing model for this month in each spatial bin to build a hybrid model reanalysis dataset
         

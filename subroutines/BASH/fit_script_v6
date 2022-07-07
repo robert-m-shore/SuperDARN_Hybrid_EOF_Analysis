@@ -1,4 +1,6 @@
 #!/bin/bash
+export RSTPATH=~superdarn/rst-4.5
+source "$RSTPATH/.profile.bash"
 
 # Script to convert .dat files to .fit format for a given time range.
 # Based on \\samba.nerc-bas.ac.uk\gchi\superdarn\coverage\data\cover_fit_script
@@ -227,7 +229,8 @@ do {
             if [[ ! -d ${STATION_DIR} ]] ; then mkdir ${STATION_DIR} ; fi
 			
             # Make a fit file from this dat file
-            /local/users/robore/Code/JH/MakeFit/rst-4.0/bin/make_fit $DATFILE $FITFILENAME
+			$RSTPATH/bin/make_fit -old $DATFILE $FITFILENAME
+			# Calls routine /users/superdarn/rst-4.5/bin/make_fit.
 
             # cd ..
 

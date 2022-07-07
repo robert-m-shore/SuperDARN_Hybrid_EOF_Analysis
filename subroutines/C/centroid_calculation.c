@@ -83,7 +83,7 @@ for(i_radar = 0; i_radar < 36; i_radar = i_radar + 1){
 	    /* printf("Single line of hardware file: %s", line); */
 	    char first_letter_of_line[1];
 		strncpy(first_letter_of_line, line,1);
-		first_letter_of_line[1] = 0; /* null terminate destination */
+		first_letter_of_line[0] = 0; /* null terminate destination */
 
 		/* Data check: display first letter of line: */
 		/* printf("First letter of this line: %s\n",first_letter_of_line); */

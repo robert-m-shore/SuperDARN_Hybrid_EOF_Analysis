@@ -1,4 +1,6 @@
 #!/bin/bash
+export RSTPATH=~superdarn/rst-4.5
+source "$RSTPATH/.profile.bash"
 
 # Script to convert .rawacf files to .fitacf format for a given time range.
 # Based on \\samba.nerc-bas.ac.uk\gchi\superdarn\coverage\data\cover_fitacf_script
@@ -227,7 +229,8 @@ do {
             if [[ ! -d ${STATION_DIR} ]] ; then mkdir ${STATION_DIR} ; fi
 
             # Make a fitacf file from this rawacf file
-            /local/users/robore/Code/JH/MakeFit/rst-4.0/bin/make_fit -new $RAWACFFILE > $FITACFFILE
+			$RSTPATH/bin/make_fit $RAWACFFILE > $FITACFFILE
+			# Calls routine /users/superdarn/rst-4.5/bin/make_fit.
 
             # cd ..
 

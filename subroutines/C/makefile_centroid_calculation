@@ -5,6 +5,7 @@
 #
 
 INCLUDE=-I$(IPATH)/base -I$(IPATH)/general -I$(IPATH)/superdarn
+LIBPATH=/users/superdarn/rst-4.5/lib
 OBJS = centroid_calculation.o
 SRC = centroid_calculation.c
 OUTPUT = ./centroid_calculation

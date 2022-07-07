@@ -5,7 +5,8 @@
 #
 
 INCLUDE=-I$(IPATH)/base -I$(IPATH)/general -I$(IPATH)/superdarn
-LIBPATH=/local/users/robore/Code/JH/MakeFit/rst-4.0/lib
+#LIBPATH=/local/users/robore/Code/JH/MakeFit/rst-4.0/lib
+LIBPATH=/users/superdarn/rst-4.5/lib
 OBJS = fitacf_file_parse.o
 SRC = fitacf_file_parse.c
 OUTPUT = ./fitacf_file_parse
