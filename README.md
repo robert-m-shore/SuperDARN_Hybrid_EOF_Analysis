@@ -139,6 +139,7 @@ Description of outputs:
 
 
 Instructions for running the hybrid EOF analysis: 
+    
     Program SuperDARN_Hybrid_EOF_Analysis.m is designed to run on the British Antarctic Survey high-performance cluster of workstations, and was developed in MATLAB R2012a (although it appears to run fine in later versions too).  It is set up to run using the same environment, i.e. it is not trivially portable to another machine.  If running on another machine, the SuperDARN Radar Software Toolkit (RST) will need to be installed: RST 4.5 (the version used in this analysis) is available at https://zenodo.org/record/4435297#.YsWlIXbMKUk, along with installation instructions.
 	Prior to running program SuperDARN_Hybrid_EOF_Analysis.m, the user should take the following steps:
 	    Link to the RST libraries by running the following commands. To avoid doing this every time, add these commands to the user's .cshrc file:
