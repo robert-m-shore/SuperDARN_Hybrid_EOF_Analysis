@@ -15,7 +15,7 @@ Program objectives:
     7.	The two EOF models are compared in terms of how well each recovers the original data variability, and the best-performing model for each spatial location is selected.  The resulting hybrid dataset comprises a continuous record of SuperDARN horizontal plasma velocity vectors at each spatial location and at 5-minute temporal cadence, with no missing information, and without relying on external drivers (like the solar wind) to complete the data coverage.
 
 
-Note: in the description below, the wildcards 'code_directory', 'data_directory', and 'output_directory' are directory paths on the British Antarctic Survey servers, and these variables are already assigned their appropriate directory paths within program SuperDARN_Hybrid_EOF_Analysis.m.  The user may redefine them within that program if required.
+Note: in the description below, the wildcards 'code_directory', 'data_directory', and 'output_directory' are directory paths on the British Antarctic Survey servers, and these variables are already assigned their appropriate directory paths within program SuperDARN_Hybrid_EOF_Analysis.m.  The user may redefine them within that program if required.  If so, then the following (empty) subdirectories must be created within 'data_directory': [data_directory]/Binned_Velocities, and [data_directory]/Velocities.  These are used to store interstitial files produced during the analysis procedure.
 
 
 Description of input data requirements: 
@@ -141,18 +141,19 @@ Description of outputs:
 Instructions for running the hybrid EOF analysis: 
     
     Program SuperDARN_Hybrid_EOF_Analysis.m is designed to run on the British Antarctic Survey high-performance cluster of workstations, and was developed in MATLAB R2012a (although it appears to run fine in later versions too).  It is set up to run using the same environment, i.e. it is not trivially portable to another machine.  If running on another machine, the SuperDARN Radar Software Toolkit (RST) will need to be installed: RST 4.5 (the version used in this analysis) is available at https://zenodo.org/record/4435297#.YsWlIXbMKUk, along with installation instructions.
-	Prior to running program SuperDARN_Hybrid_EOF_Analysis.m, the user should take the following steps:
-	    Link to the RST libraries by running the following commands. To avoid doing this every time, add these commands to the user's .cshrc file:
-	        setenv RSTPATH ~superdarn/rst-4.5
-		    source "$RSTPATH/.profile.tcsh"
-	    The MATLAB script was developed in bash shell. Before starting MATLAB, change the active shell to be bash (if not already set) by running the following command:
-	        bash
-	    If MATLAB has not previously been started on this login and in this shell, you will need to run these two commands to load, and then start, MATLAB:
-			module load hpc/matlab/R2021a
-			matlab &
-		If required, alter the file permissions of the scripts in [code_directory]/subroutines/BASH/ and the C program executables in [code_directory]/subroutines/C/ using the 'chmod +x [filename]' command to allow executable permission.
-	    The subroutine and metadata subdirectories (described above) for program SuperDARN_Hybrid_EOF_Analysis.m need to be added to the MATLAB path.
-	Following these steps, the user should alter the variables in cell “%% Options: state which calendar months to run for, and where the data are stored:” of program SuperDARN_Hybrid_EOF_Analysis.m to specify the calendar months which will be processed, and the directory locations in which the data are stored (on the BAS servers and the SuperDARN Area Network), and where the outputs will be saved to.
+    Prior to running program SuperDARN_Hybrid_EOF_Analysis.m, the user should take the following steps:
+        Link to the RST libraries by running the following commands. To avoid doing this every time, add these commands to the user's .cshrc file:
+            setenv RSTPATH ~superdarn/rst-4.5
+            source "$RSTPATH/.profile.tcsh"
+        The MATLAB script was developed in bash shell. Before starting MATLAB, change the active shell to be bash (if not already set) by running the following command:
+            bash
+        If MATLAB has not previously been started on this login and in this shell, you will need to run these two commands to load, and then start, MATLAB:
+            module load hpc/matlab/R2021a
+            matlab &
+        If required, alter the file permissions of the scripts in [code_directory]/subroutines/BASH/ and the C program executables in [code_directory]/subroutines/C/ using the 'chmod +x [filename]' command to allow executable permission.
+        The subroutine and metadata subdirectories (described above) for program SuperDARN_Hybrid_EOF_Analysis.m need to be added to the MATLAB path.
+        As stated above, the wildcards 'code_directory', 'data_directory', and 'output_directory' are directory paths on the British Antarctic Survey servers, and these variables are already assigned their appropriate directory paths within program SuperDARN_Hybrid_EOF_Analysis.m.  The user may redefine them within that program if required.  If so, then the following (empty) subdirectories must be created within 'data_directory': [data_directory]/Binned_Velocities, and [data_directory]/Velocities.  These are used to store interstitial files produced during the analysis procedure.
+    Following these steps, the user should alter the variables in cell “%% Options: state which calendar months to run for, and where the data are stored:” of program SuperDARN_Hybrid_EOF_Analysis.m to specify the calendar months which will be processed, and the directory locations in which the data are stored (on the BAS servers and the SuperDARN Area Network), and where the outputs will be saved to.
 
 
 @author: robore@bas.ac.uk. Robert Shore, ORCID: orcid.org/0000-0002-8386-1425.
